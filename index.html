@@ -3,47 +3,47 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>割り勘計算機</title>
+<title>高機能割り勘計算機</title>
 
 <style>
-body {
+body{
     font-family: Arial, sans-serif;
-    background: #f4f4f4;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    margin: 0;
+    background:#f4f4f4;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    min-height:100vh;
+    margin:0;
 }
 
-.container {
-    background: white;
-    padding: 20px;
-    border-radius: 10px;
-    width: 90%;
-    max-width: 400px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+.container{
+    background:white;
+    padding:20px;
+    border-radius:10px;
+    width:90%;
+    max-width:450px;
+    box-shadow:0 0 10px rgba(0,0,0,0.1);
 }
 
-input, button {
-    width: 100%;
-    padding: 10px;
-    margin-top: 10px;
-    box-sizing: border-box;
+input,button{
+    width:100%;
+    padding:10px;
+    margin-top:10px;
+    box-sizing:border-box;
 }
 
-button {
-    cursor: pointer;
+button{
+    cursor:pointer;
 }
 
-.result {
-    margin-top: 20px;
-    font-size: 18px;
-    font-weight: bold;
+.result{
+    margin-top:20px;
+    font-weight:bold;
+    white-space:pre-line;
 }
 
-.checkbox {
-    margin-top: 15px;
+.checkbox{
+    margin-top:10px;
 }
 </style>
 </head>
@@ -51,57 +51,136 @@ button {
 <body>
 
 <div class="container">
-    <h1>割り勘計算機</h1>
 
-    <label>合計金額（円）</label>
-    <input type="number" id="total" placeholder="5000">
+<h1>高機能割り勘計算機</h1>
 
-    <label>人数</label>
-    <input type="number" id="people" placeholder="4">
+<label>合計金額</label>
+<input type="number" id="total">
 
-    <div class="checkbox">
-        <input type="checkbox" id="freeHost" style="width:auto;">
-        <label for="freeHost">幹事を無料にする</label>
-    </div>
+<label>先輩人数</label>
+<input type="number" id="senpai" value="0">
 
-    <button onclick="calculate()">計算する</button>
+<label>後輩人数</label>
+<input type="number" id="kouhai" value="0">
 
-    <div class="result" id="result"></div>
+<label>先輩の追加料金（円）</label>
+<input type="number" id="extra" value="500">
+
+<div class="checkbox">
+<input type="checkbox" id="freeHost" style="width:auto;">
+<label for="freeHost">幹事を無料にする</label>
+</div>
+
+<button onclick="calculate()">
+計算する
+</button>
+
+<button onclick="copyResult()">
+結果をコピー
+</button>
+
+<div class="result" id="result"></div>
+
 </div>
 
 <script>
-function calculate() {
 
-    const total = Number(document.getElementById("total").value);
-    const people = Number(document.getElementById("people").value);
-    const freeHost = document.getElementById("freeHost").checked;
+// コピー用テキスト
+let copyText = "";
 
-    if (total <= 0 || people <= 0) {
-        document.getElementById("result").innerHTML =
-            "正しい数値を入力してください";
+// 計算処理
+function calculate(){
+
+    const total =
+        Number(document.getElementById("total").value);
+
+    const senpai =
+        Number(document.getElementById("senpai").value);
+
+    const kouhai =
+        Number(document.getElementById("kouhai").value);
+
+    const extra =
+        Number(document.getElementById("extra").value);
+
+    const freeHost =
+        document.getElementById("freeHost").checked;
+
+    const people = senpai + kouhai;
+
+    if(total <= 0 || people <= 0){
+        result.textContent =
+        "正しい値を入力してください";
         return;
     }
 
+    // 幹事無料なら支払人数を1人減らす
     let payPeople = people;
 
-    // 幹事無料の場合
-    if (freeHost) {
+    if(freeHost){
 
-        if (people <= 1) {
-            document.getElementById("result").innerHTML =
-                "2人以上必要です";
+        if(people <= 1){
+            result.textContent =
+            "2人以上必要です";
             return;
         }
 
-        payPeople = people - 1;
+        payPeople--;
     }
 
-    const amount = Math.ceil(total / payPeople);
+    /*
+      先輩は extra 円多く払う
+      その分を後輩から引く
+    */
+
+    const base =
+        Math.floor(
+            (total - senpai * extra)
+            / payPeople
+        );
+
+    const senpaiPay =
+        base + extra;
+
+    const kouhaiPay =
+        base;
+
+    // 実際の徴収額
+    const collected =
+        senpaiPay * senpai +
+        kouhaiPay * kouhai;
+
+    // 余った端数
+    const remainder =
+        collected - total;
+
+    copyText =
+`合計: ${total}円
+先輩: ${senpaiPay}円
+後輩: ${kouhaiPay}円
+端数(幹事負担): ${remainder}円`;
 
     document.getElementById("result").innerHTML =
-        `支払う人：${payPeople}人<br>
-         1人あたり：${amount.toLocaleString()}円`;
+`
+先輩1人: ${senpaiPay.toLocaleString()}円<br>
+後輩1人: ${kouhaiPay.toLocaleString()}円<br>
+端数(幹事負担): ${remainder.toLocaleString()}円
+`;
 }
+
+// 結果コピー
+function copyResult(){
+
+    if(copyText === ""){
+        alert("先に計算してください");
+        return;
+    }
+
+    navigator.clipboard.writeText(copyText);
+
+    alert("コピーしました");
+}
+
 </script>
 
 </body>
